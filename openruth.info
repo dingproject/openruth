@@ -1,0 +1,7 @@
+; $Id$
+name = OpenRuth
+description = Implementation of ZRuth's openruth API for their library system.
+package = OpenRuth
+php = 5.2
+core = 6.x
+
