@@ -1,0 +1,6 @@
+name = OpenRuth User
+description = Provides a shopping cart for reserving books in OpenRuth
+package = OpenRuth
+php = 5.2
+drupal = 6.x
+dependencies[] = openruth
