@@ -1,0 +1,7 @@
+name = OpenRuth Dibs Payment module
+description = Let users pay their debt through dibs
+dependencies[] = openruth
+dependencies[] = ding_dibs
+package = OpenRuth
+php = 5.2
+core = 6.x
