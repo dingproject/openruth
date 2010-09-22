@@ -5,7 +5,7 @@
  * @file openruth.module
  * Drupal implementation of ZRuth's openruth SOAP API
  */
- 
+
 /**
  * Implementation of hook_menu().
  */
@@ -21,19 +21,39 @@ function openruth_menu() {
     'file' => 'openruth.admin.inc',
   );
 
-$items['admin/settings/openruth/main'] = array(
-  'title' => 'OpenRuth',
-  'type' => MENU_DEFAULT_LOCAL_TASK,
-);
-  
+  $items['admin/settings/openruth/main'] = array(
+    'title' => 'OpenRuth',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
 
   return $items;
 }
 
+/**
+ * Return an OpenruthClient instance.
+ */
+function openruth_client() {
+  // This is basically a singleton. We also wait until right before
+  // instantiating to include our required classes. That seems like a
+  // decent performance tradeoff instead of loading everything on every
+  // page load.
+  static $client;
+  if (!isset($client)) {
+    $path = drupal_get_path('module', 'openruth');
+    include($path . '/lib/OpenruthClient/OpenruthClient.class.php');
+    $client = new OpenruthClient(
+      variable_get('openruth_wsdl_url', ''),
+      variable_get('openruth_agency_id', '')
+    );
+  }
+  return $client;
+
+}
+
 function openruth_user_get_credentials() {
-  
+
 }
 
 function openruth_client_get_user_info() {
-  
+
 }

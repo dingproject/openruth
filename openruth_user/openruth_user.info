@@ -1,6 +1,7 @@
+; $Id$
 name = OpenRuth User
-description = Provides a shopping cart for reserving books in OpenRuth
+description = Uses the OpenRuth API to handle user logins and display user data.
 package = OpenRuth
 php = 5.2
-drupal = 6.x
+core = 6.x
 dependencies[] = openruth
