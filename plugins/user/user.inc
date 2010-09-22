@@ -28,7 +28,7 @@ $plugin = array(
  * @return array
  *   An array of user information.
  */
-function openruth_user_user_get_info($account, $extended = FALSE) {
+function openruth_user_get_info($account, $extended = FALSE) {
   $creds = _alma_user_get_credentials($account);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     return $creds;
@@ -49,7 +49,7 @@ function openruth_user_user_get_info($account, $extended = FALSE) {
  *
  * @return void
  */
-function openruth_user_user_update_info($account, $new_info) {
+function openruth_user_update_info($account, $new_info) {
   return;
 }
 
@@ -67,7 +67,7 @@ function openruth_user_user_update_info($account, $new_info) {
  * @return boolean
  *   TRUE if the account is authenticated.
  */
-function openruth_user_user_logged_in($account, $redirect = FALSE) {
+function openruth_user_logged_in($account, $redirect = FALSE) {
   $creds = _openruthget_credentials($account);
   return $creds != DING_PROVIDER_AUTH_REQUIRED;
 }

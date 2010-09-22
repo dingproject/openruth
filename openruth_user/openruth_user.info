@@ -1,7 +1,0 @@
-; $Id$
-name = OpenRuth User
-description = Uses the OpenRuth API to handle user logins and display user data.
-package = OpenRuth
-php = 5.2
-core = 6.x
-dependencies[] = openruth
