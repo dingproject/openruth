@@ -201,10 +201,11 @@ function _openruth_user_status($account = NULL, $name = NULL, $pass = NULL) {
 
   if (!$name) {
     $creds = _openruth_get_credentials($account);
-    if ($creds = DING_PROVIDER_AUTH_REQUIRED) {
+    if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
       return;
     }
-    list($name, $pass) = $creds;
+    $name = $creds['user_id'];
+    $pass = $creds['password'];
   }
   $id = md5($name . $pass);
 
@@ -225,4 +226,37 @@ function _openruth_user_status($account = NULL, $name = NULL, $pass = NULL) {
   if ($_SESSION['openruth_user_status'][$id]) {
     return $_SESSION['openruth_user_status'][$id]['data'];
   }
+}
+
+/**
+ * Map openruth error messages to user visible error messages.
+ *
+ * @param mixed $error
+ *   An specific error message, if empty, return array of all messages.
+ * @return mixed
+ *   String or array, depending on arguments.
+ */
+function openruth_renew_error($error = NULL) {
+  static $errors;
+  if (!$errors) {
+    $errors = array(
+      "rejected" => t('Renewal rejected.'),
+      "reserved" => t('Cannot renew, material reserved,'),
+      "booked" => t('Cannot renew, material reserved'),
+      "copy reserved" => t('Cannot renew, material reserved'),
+      "user is blocked" => t('Renewal rejected.'),
+      "copy not on loan by user" => t('Renewal rejected.'),
+      "copy not on loan" => t('Renewal rejected.'),
+      "copy does not exist" => t('Renewal rejected.'),
+      "ILL, not renewable" => t("Renewal not possible"),
+    );
+  }
+
+  if ($error) {
+    if (isset($errors[$error])) {
+      return $errors[$error];
+    }
+    return $errors['rejected'];
+  }
+  return $errors;
 }

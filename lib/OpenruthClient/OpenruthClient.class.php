@@ -104,7 +104,29 @@ class OpenruthClient {
   /**
    * Renewing one or more loans
    */
-  public function renew_loan() {}
+  public function renew_loan($username, $copy_ids) {
+    $this->log_start();
+    dpm($copy_ids);
+    $res = $this->client->renewLoan(array(
+             'agencyId' =>  $this->agency_id,
+             'userId' => $username,
+             'copyId' => $copy_ids,
+      ));
+    $this->log($username);
+    if (isset($res->renewLoanError)) {
+      return $res->renewLoanError;
+    }
+    elseif (isset($res->renewLoan)) {
+      $result = array();
+      foreach ($res->renewLoan as $renewLoan) {
+        $result[$renewLoan->copyId] = isset($renewLoan->renewLoanError) ? $renewLoan->renewLoanError : 'OK';
+      }
+      return $result;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Booking an item

@@ -37,23 +37,6 @@ function openruth_user_get_info($account, $extended = FALSE) {
 }
 
 /**
- * Update user information.
- *
- * Update the user information with the given values. Only set keys
- * should be considered, with NULL values signalling deletion.
- *
- * @param object $account
- *   Object of user to be updated.
- * @param array $new_info
- *   New user information.
- *
- * @return void
- */
-function openruth_user_update_info($account, $new_info) {
-  return;
-}
-
-/**
  * Returns whether the account is currently 'logged in' to the user
  * backend.
  *
@@ -68,6 +51,6 @@ function openruth_user_update_info($account, $new_info) {
  *   TRUE if the account is authenticated.
  */
 function openruth_user_logged_in($account, $redirect = FALSE) {
-  $creds = _openruthget_credentials($account);
+  $creds = _openruth_get_credentials($account);
   return $creds != DING_PROVIDER_AUTH_REQUIRED;
 }
