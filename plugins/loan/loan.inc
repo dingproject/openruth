@@ -45,7 +45,6 @@ function openruth_loan_details($loan) {
   return $loan;
   $cache = &ctools_static(__FUNCTION__, array());
   if (!isset($cache[$loan['id']])) {
-    $loan['extra'] = 'Tadaaa!';
     if ($loan['provider_id'] and $object = ting_get_object_by_local_id($loan['provider_id'])) {
       $loan['ting_object'] = $object;
     }
