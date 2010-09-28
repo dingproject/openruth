@@ -249,6 +249,8 @@ function openruth_renew_error($error = NULL) {
       "copy not on loan" => t('Renewal rejected.'),
       "copy does not exist" => t('Renewal rejected.'),
       "ILL, not renewable" => t("Renewal not possible"),
+      // Special case
+      'not implemented yet' => t("Not implemented"),
     );
   }
 

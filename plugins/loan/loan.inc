@@ -61,17 +61,18 @@ function openruth_loan_renew_loans($account, $loan_ids) {
     return $creds;
   }
 
-  $res = TRUE;
+  $res = array();
   $renew_res = openruth_client()->renew_loan($creds['user_id'], $loan_ids);
   if (is_string($renew_res)) {
-    drupal_set_message(openruth_renew_error($renew_res), 'error');
-    $res = FALSE;
+    $res = openruth_renew_error($renew_res);
   }
   else {
     foreach ($renew_res as $copy_id => $status) {
-      if ($status != 'OK') {
-        drupal_set_message(openruth_renew_error($status), 'error');
-        $res = FALSE;
+      if ($status !== TRUE) {
+        $res[$copy_id] = openruth_renew_error($status);
+      }
+      else {
+        $res[$copy_id] = openruth_renew_error($status);
       }
     }
   }

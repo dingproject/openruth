@@ -106,7 +106,6 @@ class OpenruthClient {
    */
   public function renew_loan($username, $copy_ids) {
     $this->log_start();
-    dpm($copy_ids);
     $res = $this->client->renewLoan(array(
              'agencyId' =>  $this->agency_id,
              'userId' => $username,
@@ -119,7 +118,7 @@ class OpenruthClient {
     elseif (isset($res->renewLoan)) {
       $result = array();
       foreach ($res->renewLoan as $renewLoan) {
-        $result[$renewLoan->copyId] = isset($renewLoan->renewLoanError) ? $renewLoan->renewLoanError : 'OK';
+        $result[$renewLoan->copyId] = isset($renewLoan->renewLoanError) ? $renewLoan->renewLoanError : TRUE;
       }
       return $result;
     }
