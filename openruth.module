@@ -7,29 +7,6 @@
  */
 
 /**
- * Implementation of hook_menu().
- */
-function openruth_menu() {
-  $items = array();
-
-  $items['admin/settings/openruth'] = array(
-    'title' => 'OpenRuth',
-    'description' => 'Settings for OpenRuth module',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('openruth_admin_settings_form'),
-    'access arguments' => array('administer site configuration'),
-    'file' => 'openruth.admin.inc',
-  );
-
-  $items['admin/settings/openruth/main'] = array(
-    'title' => 'OpenRuth',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-
-  return $items;
-}
-
-/**
  * Return an OpenruthClient instance.
  */
 function openruth_client() {
@@ -73,8 +50,7 @@ function openruth_user($op, &$edit, &$account, $category = NULL) {
  * Delete credentials after a while.
  */
 function openruth_cron() {
-  // TODO: Move variable from ding_library_user
-  $expire_time = $_SERVER['REQUEST_TIME'] - variable_get('ding_library_user_credential_cache_duration', 1800);
+  $expire_time = $_SERVER['REQUEST_TIME'] - variable_get('openruth_credential_cache_duration', 1800);
   $res = db_query("SELECT sid, session, timestamp FROM {session} WHERE timestamp < %d", $expire_time);
   // As the only PHP functions that reads and writes the
   // almost-but-not-quite-serialized-data format of sessions does it to/from
