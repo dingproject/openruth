@@ -22,8 +22,8 @@ function openruth_reservation_list($account) {
   $reservations = array();
   $user_status = _openruth_user_status($account);
   if ($user_status && isset($user_status->orders)) {
-    if (isset($user_status->orders->ordersReady)) {
-      foreach ($user_status->orders->ordersReady as $order) {
+    if (isset($user_status->orders->orderReady)) {
+      foreach ($user_status->orders->orderReady as $order) {
         $reservations[$order->orderId] = array(
           'id' => $order->orderId,
           'title' => $order->itemTitle,
@@ -37,12 +37,11 @@ function openruth_reservation_list($account) {
           // Leave this out?
           'valid_from' => $order->orderDate,
           'valid_to' => $order->orderLastInterestDate,
-          'queue_number' => $order->orderQuePosition,
         );
       }
     }
-    if (isset($user_status->orders->ordersNotReady)) {
-      foreach ($user_status->orders->ordersNotReady as $order) {
+    if (isset($user_status->orders->orderNotReady)) {
+      foreach ($user_status->orders->orderNotReady as $order) {
         $reservations[$order->orderId] = array(
           'id' => $order->orderId,
           'title' => $order->itemTitle,
@@ -54,7 +53,7 @@ function openruth_reservation_list($account) {
           // Leave this out?
           'valid_from' => $order->orderDate,
           'valid_to' => $order->orderLastInterestDate,
-          'queue_number' => $order->orderQuePosition,
+          'queue_number' => $order->orderQueuePosition,
         );
       }
     }
