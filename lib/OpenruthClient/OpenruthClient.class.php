@@ -94,7 +94,26 @@ class OpenruthClient {
   /**
    * Get information about an agency's counters
    */
-  public function get_agency_counters() {}
+  public function get_agency_counters() {
+    $this->log_start();
+    $res = $this->client->agencyCounters(array(
+             'agencyId' =>  $this->agency_id,
+           ));
+    $this->log();
+    if (isset($res->agencyError)) {
+      return $res->agencyError;
+    }
+    elseif (isset($res->agencyCounters) && isset($res->agencyCounters->agencyCounterInfo)) {
+      $result = array();
+      foreach ($res->agencyCounters->agencyCounterInfo as $agencyCounterInfo) {
+        $result[$agencyCounterInfo->agencyCounter] = $agencyCounterInfo->agencyCounterName;
+      }
+      return $result;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Holdings information (agency info, location, availability etc.) about an given item.
@@ -160,7 +179,23 @@ class OpenruthClient {
   /**
    * Deleting a reservation
    */
-  public function cancel_order() {}
+  public function cancel_order($order_id) {
+    $this->log_start();
+    $res = $this->client->cancelOrder(array(
+             'agencyId' =>  $this->agency_id,
+             'orderId' => $order_id,
+      ));
+    $this->log();
+    if (isset($res->cancelOrderError)) {
+      return $res->cancelOrderError;
+    }
+    elseif (isset($res->cancelOrderOk)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Changing userinfo (pincode, contact, preferences etc.)
