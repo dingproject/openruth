@@ -29,7 +29,7 @@ function openruth_loan_get_loans($account) {
         'authors' => $loan->itemAuthor,
         'display_title' => $loan->itemDisplayTitle,
         'loan_date' => $loan->loanDate,
-        'due_date' => $loan->loanRecallDate,
+        'due_date' => $loan->loanReturnDate,
         'is_renewable' => ($loan->loanRenewable == 'renewable'),
       );
     }
@@ -72,7 +72,7 @@ function openruth_loan_renew_loans($account, $loan_ids) {
         $res[$copy_id] = openruth_renew_error($status);
       }
       else {
-        $res[$copy_id] = openruth_renew_error($status);
+        $res[$copy_id] = $status;
       }
     }
   }

@@ -40,7 +40,9 @@ class OpenruthClient {
   public function __construct($wsdl_url, $agency_id) {
     $this->wsdl_url = $wsdl_url;
     $this->agency_id = $agency_id;
-    $options = array();
+    $options = array(
+      'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
+    );
     if (variable_get('openruth_enable_logging', FALSE)) {
       $this->logging = TRUE;
       $options['trace'] = TRUE;
@@ -118,7 +120,57 @@ class OpenruthClient {
   /**
    * Holdings information (agency info, location, availability etc.) about an given item.
    */
-  public function get_holdings() {}
+  public function get_holdings($ids) {
+    $this->log_start();
+    $res = $this->client->holdings(array(
+             'agencyId' =>  $this->agency_id,
+             'itemId' => $ids,
+           ));
+    $this->log();
+    if (isset($res->agencyError)) {
+      return $res->agencyError;
+    }
+    elseif (isset($res->holding)) {
+      $holdings = array();
+      foreach ($res->holding as $holding) {
+        $available = $holding->agencyHoldings->itemAvailability == 'copies available for loan and reservation';
+        $reservable = $available || $holding->agencyHoldings->itemAvailability == 'no copies available, but item can be reserved';
+        $h = array(
+          'local_id' => $holding->itemId,
+          'available' => $available,
+          'reservable' => $reservable,
+          'show_reservation_button' => $reservable,
+          'holdings' => array(),
+        );
+
+        foreach ($holding->itemHoldings as $itemHolding) {
+          foreach ($itemHolding->itemLocation as $itemLocation) {
+            $parts = array();
+            if (isset($itemLocation->agencyBranchId->agencyBranchName)) {
+              $parts[] = $itemLocation->agencyBranchId->agencyBranchName;
+            }
+            if (isset($itemLocation->agencyDepartmentId->agencyDepartmentName)) {
+              $parts[] = $itemLocation->agencyDepartmentId->agencyDepartmentName;
+            }
+            if (isset($itemLocation->agencyCollectionId->agencyCollectionName)) {
+              $parts[] = $itemLocation->agencyCollectionId->agencyCollectionName;
+            }
+            if (isset($itemLocation->agencyPlacementId->agencyPlacementName)) {
+              $parts[] = $itemLocation->agencyPlacementId->agencyPlacementName;
+            }
+            if ($parts) {
+              $h['holdings'][] = join(' → ', $parts);
+            }
+          }
+        }
+        $holdings[$holding->itemId] = $h;
+      }
+      return $holdings;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Renewing one or more loans
@@ -174,7 +226,26 @@ class OpenruthClient {
   /**
    * Updating details about a reservation in the local system
    */
-  public function update_order() {}
+  public function update_order($order_id, $pickup_branch, $expiry) {
+    $this->log_start();
+    $res = $this->client->updateOrder(array(
+             'agencyId' =>  $this->agency_id,
+             'orderId' => $order_id,
+             'orderNote' => '',
+             'orderLastInterestDate' => $expiry,
+             'agencyCounter' => $pickup_branch,
+      ));
+    $this->log();
+    if (isset($res->updateOrderError)) {
+      return $res->updateOrderError;
+    }
+    elseif (isset($res->updateOrderOk)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Deleting a reservation

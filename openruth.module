@@ -234,6 +234,7 @@ function openruth_renew_error($error = NULL) {
     if (isset($errors[$error])) {
       return $errors[$error];
     }
+    watchdog('openruth', 'Unknown error while renewing: @error', array('@error' => $error), WATCHDOG_ERROR);
     return $errors['rejected'];
   }
   return $errors;
@@ -249,10 +250,15 @@ function openruth_form_ding_reservation_list_form_alter(&$form, $form_state) {
     '#date_year_range' => '-0:+2',
   );
 
+  $branches = array(
+    '' => t("No change"),
+  );
+  $branches += openruth_client()->get_agency_counters();
+
   $form['options']['new_pickup_branch'] = array(
     '#type' => 'select',
     '#title' => t('New pickup branch'),
-    '#options' => openruth_client()->get_agency_counters(),
+    '#options' => $branches,
   );
 
   $form['buttons']['update'] = array(
@@ -272,10 +278,17 @@ function openruth_form_ding_reservation_list_form_alter(&$form, $form_state) {
 
 }
 
-function openruth_ding_reservation_list_form_validate($form, $form_state) {
+function openruth_ding_reservation_list_form_validate($form, &$form_state) {
   $reservations = $form_state['values']['reservations'];
+
+  if ((!empty($form_state['values']['new_expiry']) ||
+      !empty($form_state['values']['new_pickup_branch'])) &&
+    empty($form_state['values']['selected'])) {
+    form_error($form['selected'], t('You must select some reservations.'));
+  }
+
   foreach (array_filter($form_state['values']['selected']) as $id) {
-    // Detect fetable reservations...
+    // Detect fetchable reservations...
     if (($reservations[$id]['status'] == 'fetchable')) {
       if (!empty($form_state['values']['new_expiry'])) {
         form_error($form['selected'][$id], t('You can not change expiry on reservations which are ready for pick up'));
@@ -308,7 +321,7 @@ function openruth_ding_reservation_list_form_validate($form, $form_state) {
  *
  * Updates selected reservations.
  */
-function openruth_ding_reservation_list_form_update($form, $form_state) {
+function openruth_ding_reservation_list_form_update($form, &$form_state) {
   // TODO: Not implemented in the service yet.
   $creds = _openruth_get_credentials($form_state['values']['account']);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
@@ -316,18 +329,31 @@ function openruth_ding_reservation_list_form_update($form, $form_state) {
     return;
   }
   $reservations_ids = array_filter($form_state['values']['selected']);
-  $changes = array();
-  if ($form_state['values']['new_expiry']) {
-    $changes['expiry'] = $form_state['values']['new_expiry'];
-  }
-  if ($form_state['values']['new_pickup_branch']) {
-    $changes['pickup_branch'] = $form_state['values']['new_pickup_branch'];
-  }
-  $res = TRUE;
+  $res = array();
   foreach ($reservations_ids as $reservations_id) {
-    // alma_client_change_reservation($creds['user_id'], $creds['password'], $form_state['reservations'][$reservations_id], $changes);
+    $expiry = empty($form_state['values']['new_expiry']) ?
+      $form_state['values']['reservations'][$reservations_id]['valid_to'] :
+      $form_state['values']['new_expiry'];
+    $pickup_branch = empty($form_state['values']['new_pickup_branch']) ?
+      $form_state['values']['reservations'][$reservations_id]['pickup_branch'] :
+      $form_state['values']['new_pickup_branch'];
+    $res[] = openruth_client()->update_order($reservations_id, $pickup_branch, $expiry);
   }
-  drupal_set_message(t('Reservations updated.'));
+
+  $successes = in_array(TRUE, $res);
+  $failures = in_array(FALSE, $res);
+  if ($successes && !$failures){
+    drupal_set_message(t('Reservations updated.'));
+  }
+  elseif ($failures && !$successes) {
+    drupal_set_message(t('Could not update reservations.', 'error'));
+  }
+  else {
+    drupal_set_message(t('Updated @ok_count reservations, @failed_count failed', array('@ok_count' => $counts[TRUE], '@failed_count' => $counts[FALSE])), 'error');
+  }
+
+  // Flush cached user status.
+  _openruth_user_status();
 }
 
 /**
@@ -347,16 +373,20 @@ function openruth_ding_reservation_list_form_remove($form, $form_state) {
   foreach ($reservations_ids as $reservations_id) {
     $res[] = openruth_client()->cancel_order($reservations_id);
   }
-  $counts = array_count_values($res);
-  if (isset($counts[TRUE]) && !isset($counts[FALSE])){
+
+  $successes = in_array(TRUE, $res);
+  $failures = in_array(FALSE, $res);
+  if ($successes && !$failures){
     drupal_set_message(t('Reservations deleted.'));
   }
-  elseif (isset($counts[FALSE]) && !isset($counts[TRUE])) {
+  elseif ($failures && !$successes) {
     drupal_set_message(t('Could not delete reservations.', 'error'));
   }
   else {
     drupal_set_message(t('Deleted @ok_count reservations, @failed_count failed', array('@ok_count' => $counts[TRUE], '@failed_count' => $counts[FALSE])), 'error');
   }
+  // Flush cached user status.
+  _openruth_user_status();
 }
 
 // Cart reservation support.
