@@ -15,12 +15,12 @@ $plugin = array(
 /**
  */
 function openruth_reservation_list($account) {
-  $creds = _openruth_get_credentials($account);
+  $creds = ding_library_user_get_credentials($account);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     return $creds;
   }
   $reservations = array();
-  $user_status = _openruth_user_status($account);
+  $user_status = _openruth_user_status($creds);
   if ($user_status && isset($user_status->orders)) {
     if (isset($user_status->orders->orderReady)) {
       foreach ($user_status->orders->orderReady as $order) {

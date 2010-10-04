@@ -15,12 +15,12 @@ $plugin = array(
 /**
  */
 function openruth_loan_get_loans($account) {
-  $creds = _openruth_get_credentials($account);
+  $creds = ding_library_user_get_credentials($account);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     return $creds;
   }
   $loans = array();
-  $user_status = _openruth_user_status($account);
+  $user_status = _openruth_user_status($creds);
   if ($user_status && isset($user_status->loans) && isset($user_status->loans->loan)) {
     foreach ($user_status->loans->loan as $loan) {
       $loans[$loan->copyId] = array(
@@ -56,13 +56,13 @@ function openruth_loan_details($loan) {
 /**
  */
 function openruth_loan_renew_loans($account, $loan_ids) {
-  $creds = _openruth_get_credentials($account);
+  $creds = ding_library_user_get_credentials($account);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     return $creds;
   }
 
   $res = array();
-  $renew_res = openruth_client()->renew_loan($creds['user_id'], $loan_ids);
+  $renew_res = openruth_client()->renew_loan($creds['name'], $loan_ids);
   if (is_string($renew_res)) {
     $res = openruth_renew_error($renew_res);
   }

@@ -27,47 +27,6 @@ function openruth_client() {
 
 }
 
-// USER FUNCTIONS
-
-
-/**
- * Implementation of hook_user().
- */
-function openruth_user($op, &$edit, &$account, $category = NULL) {
-  switch ($op) {
-    case 'login':
-      if ($account->openruth_creds) {
-        $_SESSION['openruth_creds'][$account->uid] = $account->openruth_creds;
-        unset($account->openruth_creds);
-      }
-      break;
-  }
-}
-
-/**
- * Implementation of hook_cron().
- *
- * Delete credentials after a while.
- */
-function openruth_cron() {
-  $expire_time = $_SERVER['REQUEST_TIME'] - variable_get('openruth_credential_cache_duration', 1800);
-  $res = db_query("SELECT sid, session, timestamp FROM {session} WHERE timestamp < %d", $expire_time);
-  // As the only PHP functions that reads and writes the
-  // almost-but-not-quite-serialized-data format of sessions does it to/from
-  // the current session, we're using our own session as a scratchpad.
-  $old_session = $_SESSION;
-  while ($row = db_fetch_object($res)) {
-    $_SESSION = array();
-    session_decode($ros->session);
-    if (isset($_SESSION['openruth_creds'])) {
-      unset($_SESSION['openruth_creds']);
-      $new_session = session_encode();
-      db_query("UPDATE {session} SET session = '%s' WHERE sid = %d AND timestamp = %d", $new_session, $row->sid, $row->timestamp);
-    }
-  }
-  $_SESSION = $old_session;
-}
-
 /**
  * Implementation of hook_ctools_plugin_directory().
  */
@@ -87,78 +46,11 @@ function openruth_form_alter(&$form, $form_state, $form_id) {
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
+    case 'ding_library_user_forms_authenticate':
       // Since the login name can be a user's CPR-number, that too is hidden.
       $form['name']['#type'] = 'password';
-      // Add our own validation handler, before the default Drupal login
-      // validator.
-      array_splice($form['#validate'], array_search('user_login_authenticate_validate', $form['#validate']), 0, 'openruth_user_login_validate');
-      break;
+       break;
   }
-}
-
-/**
- * Validation for the login form.
- */
-function openruth_user_login_validate($form, &$form_state) {
-  openruth_authenticate($form_state['values']);
-}
-
-/**
- */
-function openruth_authenticate(&$form_values) {
-  $res = openruth_client()->user_check($form_values['name'], $form_values['pass']);
-
-  if (is_string($res)) {
-    watchdog('openruth', 'Error in user_check: @error', array('@error' => $res), WATCHDOG_ERROR);
-    return;
-  }
-  elseif (!$res->userFound || !$res->userPinCodeOk) {
-    // Not found.
-    return;
-  }
-
-  if ($res->userBlocked) {
-    // Tell the user...
-  }
-
-  $auth_name = md5(drupal_get_private_key() . $form_values['name']) . '@openruth';
-  user_external_login_register($auth_name, 'openruth_user');
-
-  global $user;
-  // Save credentials for later use.
-  $user->openruth_creds = array(
-    'user_id' => $form_values['name'],
-    'password' => $form_values['pass'],
-  );
-
-  $user_status = _openruth_user_status($user, $form_values['name'], $form_values['pass']);
-
-  if ($user_status && isset($user_status->userInfo)) {
-    $user_info = $user_status->userInfo;
-    // Set display_name
-    $user->display_name = $user_info->userFirstName . ' ' . $user_info->userLastName;
-  }
-  elseif ($res->userEmail) {
-    $user->display_name = $res->userEmail;
-  }
-  else {
-    // What can we do? Use auth_name.
-    $user->display_name = $auth_name;
-  }
-
-  // Finalize login.
-  user_authenticate_finalize($form_values);
-}
-
-/**
- * Get OpenRuth credentials for user.
- */
-function _openruth_get_credentials($account) {
-  // See if we have credentials for the given user in the session.
-  if ($_SESSION['openruth_creds'][$account->uid]) {
-    return $_SESSION['openruth_creds'][$account->uid];
-  }
-  return DING_PROVIDER_AUTH_REQUIRED;
 }
 
 /**
@@ -166,28 +58,20 @@ function _openruth_get_credentials($account) {
  *
  * Session cached for efficiency.
  */
-function _openruth_user_status($account = NULL, $name = NULL, $pass = NULL) {
-  // Flush cache if account is not specified.
-  if (!is_array($_SESSION['openruth_user_status']) || !$account) {
+function _openruth_user_status($creds = NULL) {
+  // Flush cache if creds is not specified.
+  if (!is_array($_SESSION['openruth_user_status']) || !$creds) {
     $_SESSION['openruth_user_status'] = array();
   }
-  if (!$account) {
+  if (!$creds) {
     return;
   }
 
-  if (!$name) {
-    $creds = _openruth_get_credentials($account);
-    if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
-      return;
-    }
-    $name = $creds['user_id'];
-    $pass = $creds['password'];
-  }
-  $id = md5($name . $pass);
+  $id = md5($creds['name'] . $creds['pass']);
 
   if (!isset($_SESSION['openruth_user_status'][$id]) ||
     $_SESSION['openruth_user_status'][$id]['time'] < ($_SERVER['REQUEST_TIME'] - 300)) {
-    $status = openruth_client()->user_status($name, $pass);
+    $status = openruth_client()->user_status($creds['name'], $creds['pass']);
     if ($status && !is_string($status)) {
       $_SESSION['openruth_user_status'][$id] = array(
         'time' => $_SERVER['REQUEST_TIME'],
@@ -323,7 +207,7 @@ function openruth_ding_reservation_list_form_validate($form, &$form_state) {
  */
 function openruth_ding_reservation_list_form_update($form, &$form_state) {
   // TODO: Not implemented in the service yet.
-  $creds = _openruth_get_credentials($form_state['values']['account']);
+  $creds = ding_library_user_get_credentials($form_state['values']['account']);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     drupal_set_message('You must be logged in to delete reservations');
     return;
@@ -363,7 +247,7 @@ function openruth_ding_reservation_list_form_update($form, &$form_state) {
  */
 function openruth_ding_reservation_list_form_remove($form, $form_state) {
   // TODO: Not implemented in the service yet.
-  $creds = _openruth_get_credentials($form_state['values']['account']);
+  $creds = ding_library_user_get_credentials($form_state['values']['account']);
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     drupal_set_message('You must be logged in to delete reservations');
     return;
