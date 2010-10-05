@@ -85,6 +85,7 @@ class OpenruthClient {
       } else {
         watchdog('openruth', 'Sending request: @xml',array('@xml' => strtr($this->client->__getLastRequest(), $replace_values)), WATCHDOG_DEBUG);
       }
+      watchdog('openruth', 'Response: @xml',array('@xml' => strtr($this->client->__getLastResponse(), $replace_values)), WATCHDOG_DEBUG);
     }
   }
 
@@ -206,7 +207,37 @@ class OpenruthClient {
   /**
    * Making a reservation in the local system
    */
-  public function order_item() {}
+  public function order_item($username, $expiry, $pickup_branch, $provider_id) {
+    $this->log_start();
+    $res = $this->client->orderItem(array(
+             'agencyId' =>  $this->agency_id,
+             'userId' => $username,
+             // 'orderNote' => '',
+             'orderLastInterestDate' => $expiry,
+             'agencyCounter' => $pickup_branch,
+             'orderOverRule' => FALSE,
+             'orderPriority' => 'normal',
+             'orderItemId' => array(
+               'itemId' => $provider_id,
+             ),
+      ));
+    $this->log($username);
+    if (isset($res->orderItemError)) {
+      return $res->orderItemError;
+    }
+    elseif (isset($res->orderItem)) {
+      $result = array();
+      foreach ($res->orderItem as $orderItem) {
+        watchdog('debug', 'item ' . print_r($orderItem->orderItemId->itemId, true), NULL, WATCHDOG_DEBUG);
+        $result[$orderItem->orderItemId->itemId] = isset($orderItem->orderItemError) ? $orderItem->orderItemError : TRUE;
+      }
+      watchdog('debug', 'res1 ' . print_r($result, true), NULL, WATCHDOG_DEBUG);
+      return $result;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Get information about number of copies in a booking available at various times
@@ -271,7 +302,39 @@ class OpenruthClient {
   /**
    * Changing userinfo (pincode, contact, preferences etc.)
    */
-  public function update_userinfo() {}
+  public function update_userinfo($name, $pass, $changes) {
+    static $mapping = array(
+      'pass' => 'userPinCodeNew',
+      'mail' => 'userEmail',
+      'mobile_phone' => 'userMobilePhone',
+      'reminder' => 'userPreReturnReminder',
+      'first_name' => 'userFirstName',
+      'last_name' => 'userLastName',
+      'preferred_branch' => 'agencyCounter',
+    );
+    $this->log_start();
+    $args = array(
+             'agencyId' =>  $this->agency_id,
+             'userId' => $name,
+             'userPinCode' => $pass,
+    );
+    foreach ($mapping as $from => $to) {
+      if (isset($changes[$from])) {
+        $args[$to] = $changes[$from];
+      }
+    }
+    $res = $this->client->updateUserInfo($args);
+    $this->log($name, $pass);
+    if (isset($res->userError)) {
+      return $res->userError;
+    }
+    elseif (isset($res->updateUserInfoOk)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Performing a user check (whether the user exists in the system and user's various rights and parameters)

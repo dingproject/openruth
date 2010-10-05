@@ -15,12 +15,11 @@ $plugin = array(
 /**
  */
 function openruth_reservation_list($account) {
-  $creds = ding_library_user_get_credentials($account);
-  if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
-    return $creds;
+  $user_status = _openruth_user_status($account);
+  if ($user_status == DING_PROVIDER_AUTH_REQUIRED) {
+    return $user_status;
   }
   $reservations = array();
-  $user_status = _openruth_user_status($creds);
   if ($user_status && isset($user_status->orders)) {
     if (isset($user_status->orders->orderReady)) {
       foreach ($user_status->orders->orderReady as $order) {
@@ -97,12 +96,58 @@ function openruth_reservation_details($reservation) {
  *   The user to reserve for.
  * @param array $provider_id
  *   Id to reserve.
- * @return boolean
- *   Success or not.
+ * @return array
+ *   with the following keys:
+ *   - success:
+ *     One of the following constants:
+ *     - DING_PROVIDER_AUTH_REQUIRED: Authentication required.
+ *     - DING_RESERVATION_SUCCESS: Successfully reserved.
+ *     - DING_RESERVATION_ERROR_NO_DEFAULT_BRANCH: User haven't set a default
+ *       branch.
+ *     - DING_RESERVATION_ERROR_RESERVATION_EXISTS: Already reserved.
+ *     - DING_RESERVATION_ERROR_NOT_AVAILABLE: Not available for reservation.
+ *     - DING_RESERVATION_ERROR_NOT_ALLOWED: Reservation is not allowed for
+ *       user.
+ *     - DING_RESERVATION_ERROR: General error (use sparingly).
+ *     Any other value is treated like DING_RESERVATION_ERROR.
+ *   - branch: (optional) In case of DING_RESERVATION_SUCCESS, the branch
+ *     the material is reserved to.
  */
-function openruth_reservation_create($account, $provider_id) {
-  // TODO: implement
-  return FALSE;
+function openruth_reservation_create($account, $provider_id, $optional = array()) {
+  if (!$optional['pickup_branch']) {
+    if ($account->preferred_branch) {
+      $optional['pickup_branch'] = $account->preferred_branch;
+    }
+    else {
+      return array('status' => DING_RESERVATION_ERROR_NO_DEFAULT_BRANCH);
+    }
+  }
+  if (!$optional['expiry']) {
+    $interest_period = $account->interest_period ? $account->interest_period : DING_RESERVATION_DEFAULT_INTEREST_PERIOD;
+    $optional['expiry'] = date('Y-m-d', $_SERVER['REQUEST_TIME'] + $interest_period * 86400);
+  }
+
+  $creds = ding_library_user_get_credentials($account);
+  if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
+    return array('status' => $creds);
+  }
+  $order_res = openruth_client()->order_item($creds['name'], $optional['expiry'], $optional['pickup_branch'], $provider_id);
+  if (is_string($order_res)) {
+    $res = array('status' => openruth_reservation_error_code($renew_res));
+  }
+  else {
+    if (!isset($order_res[$provider_id])) {
+      $res = array('status' => DING_RESERVATION_ERROR);
+    }
+    else {
+      $res = array('status' => openruth_reservation_error_code($order_res[$provider_id]), 'branch' => $optional['pickup_branch']);
+    }
+  }
+
+  // Flush cached user status.
+  _openruth_user_status();
+
+  return $res;
 }
 
 /**

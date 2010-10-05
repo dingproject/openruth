@@ -64,6 +64,23 @@ function openruth_user_settings_form() {
 }
 
 /**
+ * Form callback for user library settings.
+ *
+ * This is a regular form callback.
+ */
+function openruth_user_library_settings_form($form_state, $account) {
+  $form = array();
+
+  $form['account'] = array(
+    '#type' => 'value',
+    '#value' => $account,
+  );
+
+  // We don't have anything, but we know that the reservation plugin have.
+  return $form;
+}
+
+/**
  *
  */
 function openruth_user_authenticate($name, $pass) {
@@ -89,22 +106,10 @@ function openruth_user_authenticate($name, $pass) {
   $return['creds'] = array(
     'name' => $name,
     'pass' => $pass,
-    'properties' => array(),
   );
 
-  $user_status = _openruth_user_status($return['creds']);
-  if ($user_status && isset($user_status->userInfo)) {
-    $user_info = $user_status->userInfo;
-    // Set display_name
-    $return['properties']['display_name'] = $user_info->userFirstName . ' ' . $user_info->userLastName;
-  }
-  elseif ($res->userEmail) {
-    $return['properties']['display_name'] = $res->userEmail;
-  }
-  else {
-    // What can we do? Use auth_name.
-    $return['properties']['display_name'] = $user->name;
-  }
+  // Flush the user status cache, so we'll get the newest information.
+  _openruth_user_status();
 
   return $return;
 }
