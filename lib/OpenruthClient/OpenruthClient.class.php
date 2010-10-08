@@ -202,12 +202,35 @@ class OpenruthClient {
   /**
    * Booking an item
    */
-  public function book_item() {}
+  public function book_item($username, $provider_id, $count, $start_date, $end_date, $pickup_branch) {
+    $this->log_start();
+    $res = $this->client->bookItem(array(
+             'agencyId' =>  $this->agency_id,
+             'userId' => $username,
+             // 'bookingNote' => '',
+             'agencyCounter' => $pickup_branch,
+             'itemId' =>$provider_id,
+             'bookingTotalCount' => $count,
+             'bookingStartDate' => $start_date,
+             'bookingEndDate' => $end_date,
+
+      ));
+    $this->log($username);
+    if (isset($res->bookingError)) {
+      return $res->bookingError;
+    }
+    elseif (isset($res->bookingOk)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Making a reservation in the local system
    */
-  public function order_item($username, $expiry, $pickup_branch, $provider_id) {
+  public function order_item($username, $provider_id, $expiry, $pickup_branch) {
     $this->log_start();
     $res = $this->client->orderItem(array(
              'agencyId' =>  $this->agency_id,
@@ -228,10 +251,8 @@ class OpenruthClient {
     elseif (isset($res->orderItem)) {
       $result = array();
       foreach ($res->orderItem as $orderItem) {
-        watchdog('debug', 'item ' . print_r($orderItem->orderItemId->itemId, true), NULL, WATCHDOG_DEBUG);
         $result[$orderItem->orderItemId->itemId] = isset($orderItem->orderItemError) ? $orderItem->orderItemError : TRUE;
       }
-      watchdog('debug', 'res1 ' . print_r($result, true), NULL, WATCHDOG_DEBUG);
       return $result;
     }
     else {
@@ -252,7 +273,23 @@ class OpenruthClient {
   /**
    * Cancelling a booking of an item
    */
-  public function cancel_booking() {}
+  public function cancel_booking($bookings_id) {
+    $this->log_start();
+    $res = $this->client->cancelBooking(array(
+             'agencyId' =>  $this->agency_id,
+             'bookingId' => $bookings_id,
+      ));
+    $this->log();
+    if (isset($res->bookingError)) {
+      return $res->bookingError;
+    }
+    elseif (isset($res->bookingOk)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
   /**
    * Updating details about a reservation in the local system

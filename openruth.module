@@ -93,6 +93,9 @@ function _openruth_user_status($creds = NULL, $reset = FALSE) {
           if ($user_info->agencyCounter) {
             $extra['preferred_branch'] = $user_info->agencyCounter;
           }
+          if ($user_info->userEmail) {
+            $extra['mail'] = $user_info->userEmail;
+          }
         }
         else {
           // What can we do? Use auth_name.
@@ -115,6 +118,68 @@ function _openruth_user_status($creds = NULL, $reset = FALSE) {
   }
   if ($_SESSION['openruth_user_status'][$id]) {
     return $_SESSION['openruth_user_status'][$id]['data'];
+  }
+}
+
+/**
+ * Get agency counters.
+ *
+ * Logs errors.
+ *
+ * @todo
+ * Should probably cache the list.
+ */
+function _openruth_get_agency_counters() {
+  static $branches;
+  if (!isset($branches)) {
+    $branches = openruth_client()->get_agency_counters();
+    if (is_string($branches)) {
+      watchdog('openruth', 'Error fetching agency counters: @error', array('@error' => $branches), WATCHDOG_ERROR);
+      $branches = array();
+    }
+    elseif (!is_array($branches)) {
+      watchdog('openruth', 'Unknown error fetching agency counters.', NULL, WATCHDOG_ERROR);
+      $branches = array();
+    }
+  }
+  return $branches;
+}
+
+/**
+ * Element validator.
+ */
+function openruth_element_validate_number($element, &$form_state) {
+  if (!preg_match('/^\d+/', $element['#value']) || !($element['#value'] > 0)) {
+    form_error($element, t('Valid positive number required.'));
+  }
+}
+
+/**
+ * Element validator.
+ */
+function openruth_element_validate_future_date(&$element, &$form_state) {
+  if (!empty($element['#value']['date'])) {
+    list($year, $month, $day) = explode('-', trim($element['#value']['date']));
+    if (!checkdate($month, $day, $year)) {
+      form_error($element, t('Invalid date'));
+    }
+
+    $timestamp = strtotime($element['#value']['date']);
+    if ($timestamp <= $_SERVER['REQUEST_TIME']) {
+      form_error($element, t('Date must be later than today.'));
+    }
+  }
+}
+
+/**
+ * Element validator.
+ */
+function openruth_element_validate_options($element, &$form_state, $complete) {
+  // Don't bother if we already got errors.
+  if (!form_get_errors() && !empty($element['start_date']['#value']['date']) && !empty($element['start_date']['#value']['date'])) {
+    if (strtotime($element['start_date']['#value']['date']) > strtotime($element['end_date']['#value']['date'])) {
+      form_error($element['end_date'], t('End date must be later than start date.'));
+    }
   }
 }
 
@@ -203,9 +268,9 @@ function openruth_reservation_error_code($error) {
       "no copies available for reservation" => DING_RESERVATION_ERROR_NOT_AVAILABLE,
       "loan not allowed for this user category" => DING_RESERVATION_ERROR_NOT_ALLOWED,
       "loan not allowed, user too young" => DING_RESERVATION_ERROR_NOT_ALLOWED,
-      "unspecified error, order not possible" => FALSE,
-      "system error" => FALSE,
-      "unknown agencyId" => FALSE,
+      "unspecified error, order not possible" => DING_RESERVATION_ERROR,
+      "system error" => DING_RESERVATION_ERROR,
+      "unknown agencyId" => DING_RESERVATION_ERROR,
       TRUE => DING_RESERVATION_SUCCESS,
     );
   }
@@ -234,12 +299,10 @@ function openruth_form_openruth_user_library_settings_form_alter(&$form, $form_s
     '#default_value' => (isset($account->interest_period) && $account->interest_period > 10) ? $account->interest_period : DING_RESERVATION_DEFAULT_INTEREST_PERIOD,
   );
 
-  $branches = openruth_client()->get_agency_counters();
-
   $form['options']['pickup_branch'] = array(
     '#type' => 'select',
     '#title' => t('Preferred library'),
-    '#options' => $branches,
+    '#options' => _openruth_get_agency_counters(),
     '#default_value' => $account->preferred_branch,
   );
 
@@ -288,7 +351,7 @@ function openruth_form_ding_reservation_list_form_alter(&$form, $form_state) {
   $branches = array(
     '' => t("No change"),
   );
-  $branches += openruth_client()->get_agency_counters();
+  $branches += _openruth_get_agency_counters();
 
   $form['options']['new_pickup_branch'] = array(
     '#type' => 'select',
@@ -403,21 +466,25 @@ function openruth_ding_reservation_list_form_remove($form, $form_state) {
     return;
   }
   $reservations_ids = array_filter($form_state['values']['selected']);
-  $res = array();
+
+  $successes = $failures = array();
   foreach ($reservations_ids as $reservations_id) {
-    $res[] = openruth_client()->cancel_order($reservations_id);
+    if (openruth_client()->cancel_order($reservations_id)) {
+      $successes[] = $reservations_id;
+    }
+    else {
+      $failures[] = $reservations_id;
+    }
   }
 
-  $successes = in_array(TRUE, $res);
-  $failures = in_array(FALSE, $res);
-  if ($successes && !$failures){
+  if (!empty($successes) && empty($failures)){
     drupal_set_message(t('Reservations deleted.'));
   }
-  elseif ($failures && !$successes) {
+  elseif (!empty($failures) && empty($successes)) {
     drupal_set_message(t('Could not delete reservations.', 'error'));
   }
   else {
-    drupal_set_message(t('Deleted @ok_count reservations, @failed_count failed', array('@ok_count' => $counts[TRUE], '@failed_count' => $counts[FALSE])), 'error');
+    drupal_set_message(t('Deleted @ok_count reservations, @failed_count failed', array('@ok_count' => sizeof($successes), '@failed_count' => sizeof($failures))), 'error');
   }
   // Flush cached user status.
   _openruth_user_status();
@@ -442,7 +509,7 @@ function openruth_form_ding_cart_list_form_alter(&$form, &$form_state) {
   $form['options']['pickup_branch'] = array(
     '#type' => 'select',
     '#title' => t('Pickup branch'),
-    '#options' => openruth_client()->get_agency_counters(),
+    '#options' => _openruth_get_agency_counters(),
   );
 
   $form['reserve'] = array(
@@ -469,4 +536,69 @@ function openruth_form_ding_cart_list_form_submit($form, &$form_state) {
       drupal_set_message(t('Reservation of “@title” failed. It may be on your reservation list already.', array('@title' => $form['cart']['#value'][$local_id]['title'])), 'error');
     }
   }
+}
+
+// Booking related functions.
+
+/**
+ * Return booking error message if it's a user error.
+ */
+function openruth_booking_user_error($error) {
+  static $errors;
+  if (!$errors) {
+    $errors = array(
+      "overbooking" => t('Overbooking'),
+      "normal period of booking exceeded" => t('Normal period of booking exceeded'),
+      "number of fetched copies exceeds number of ordered copies" => t('Number of fetched copies exceeds number of ordered copies'),
+      // Marginal.
+      "booking can not be deleted" => t('Booking can not be deleted'),
+    );
+  }
+
+  if (isset($errors[$error])) {
+    return $errors[$error];
+  }
+  return NULL;
+}
+
+function openruth_form_ding_booking_list_form_alter(&$form, $form_state) {
+  $form['buttons']['remove'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete selected bookings'),
+    '#attributes' => array('class' => 'cancel-button'),
+    '#submit' => array('openruth_ding_booking_list_form_remove'),
+  );
+}
+/**
+ * Submit function.
+ *
+ * Updates selected bookings.
+ */
+function openruth_ding_booking_list_form_remove($form, $form_state) {
+  ding_library_user_required();
+
+  $bookings_ids = array_filter($form_state['values']['selected']);
+
+  $successes = $failures = array();
+  foreach ($bookings_ids as $bookings_id) {
+    if (openruth_client()->cancel_booking($bookings_id)) {
+      $successes[] = $bookings_id;
+    }
+    else {
+      $failures[] = $bookings_id;
+    }
+  }
+
+  if (!empty($successes) && empty($failures)){
+    drupal_set_message(t('Bookings deleted.'));
+  }
+
+  elseif (!empty($failures) && empty($successes)) {
+    drupal_set_message(t('Could not delete bookings.'), 'error');
+  }
+  else {
+    drupal_set_message(t('Deleted @ok_count bookings, @failed_count failed', array('@ok_count' => sizeof($successes), '@failed_count' => sizeof($failures))), 'error');
+  }
+  // Flush cached user status.
+  _openruth_user_status();
 }

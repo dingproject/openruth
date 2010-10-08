@@ -122,6 +122,7 @@ function openruth_reservation_create($account, $provider_id, $optional = array()
       return array('status' => DING_RESERVATION_ERROR_NO_DEFAULT_BRANCH);
     }
   }
+
   if (!$optional['expiry']) {
     $interest_period = $account->interest_period ? $account->interest_period : DING_RESERVATION_DEFAULT_INTEREST_PERIOD;
     $optional['expiry'] = date('Y-m-d', $_SERVER['REQUEST_TIME'] + $interest_period * 86400);
@@ -131,7 +132,7 @@ function openruth_reservation_create($account, $provider_id, $optional = array()
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     return array('status' => $creds);
   }
-  $order_res = openruth_client()->order_item($creds['name'], $optional['expiry'], $optional['pickup_branch'], $provider_id);
+  $order_res = openruth_client()->order_item($creds['name'], $provider_id, $optional['expiry'], $optional['pickup_branch']);
   if (is_string($order_res)) {
     $res = array('status' => openruth_reservation_error_code($renew_res));
   }
