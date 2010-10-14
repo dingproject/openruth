@@ -46,7 +46,7 @@ function openruth_form_alter(&$form, $form_state, $form_id) {
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
-    case 'ding_library_user_forms_authenticate':
+    case 'ding_library_user_authenticate_form':
       // Since the login name can be a user's CPR-number, that too is hidden.
       $form['name']['#type'] = 'password';
        break;
@@ -601,4 +601,80 @@ function openruth_ding_booking_list_form_remove($form, $form_state) {
   }
   // Flush cached user status.
   _openruth_user_status();
+}
+
+// Debt related functions
+
+/**
+ *
+ */
+function openruth_form_ding_debt_list_form_alter(&$form, $form_state) {
+  if (function_exists('ding_dibs_payment_prepare')) {
+    $form['buttons']['pay'] = array(
+      '#type' => 'submit',
+      '#value' => t('Pay all'),
+      '#attributes' => array('class' => 'update-button'),
+      '#submit' => array('openruth_ding_debt_list_form_pay'),
+    );
+  }
+}
+
+/**
+ *
+ */
+function openruth_ding_debt_list_form_pay($form, &$form_state) {
+  $status = _openruth_user_status($form_state['values']['account']);
+  if ($status == DING_PROVIDER_AUTH_REQUIRED) {
+    drupal_set_message(t('You must be logged in to pay fines.'), 'error');
+    return;
+  }
+
+  $userInfo = $status->userInfo;
+  if (!$userInfo) {
+    // Crappy error message, but what can you tell the user?
+    drupal_set_message(t('There was a problem communicating with the library system, please try again later.'), 'error');
+    return;
+  }
+
+  $params = array(
+    'customer_name' => $userInfo->userFirstName . ' ' . $userInfo->userLastName,
+    'customer_city' => $userInfo->userCity,
+    'customer_zipcode' => $userInfo->userPostCode,
+  );
+  if ($userInfo->userAddress) {
+    $params['customer_address'] = $userInfo->userAddress;
+  }
+  if ($userInfo->userAttName) {
+    $params['customer_address_2'] = $userInfo->userAttName;
+  }
+  elseif ($userInfo->userCoName) {
+    $params['customer_address_2'] = $userInfo->userCoName;
+  }
+  if ($userInfo->userEmail) {
+    $params['customer_email'] = $userInfo->userEmail;
+  }
+  if ($userInfo->userTelephone) {
+    $params['customer_phone'] = $userInfo->userTelephone;
+  }
+  elseif ($userInfo->userMobilePhone) {
+    $params['customer_phone'] = $userInfo->userMobilePhone;
+  }
+
+  ding_dibs_payment_prepare($form_state['values']['total'], $params, 'openruth_debt_dibs_add_payment');
+}
+
+/**
+ *
+ */
+function openruth_debt_dibs_add_payment($transaction) {
+  global $user;
+  $creds = ding_library_user_get_credentials($user);
+  $res = openruth_client()->user_payment($creds['name'], $transaction['payment_price'], $transaction['payment_order_id']);
+  if ($res !== TRUE) {
+    $message = 'Unknown error';
+    if ($res) {
+      $message = $res;
+    }
+    watchdog('openruth', 'Error registering payment: @error', array('@error' => $message), WATCHDOG_CRITICAL);
+  }
 }

@@ -54,31 +54,6 @@ function openruth_booking_list($account) {
 }
 
 /**
- * Add details to a booking for detailed display.
- *
- * The 'list' callback should only return minimal data, and leave out
- * data that would requiring querying additional services, for
- * speed. 'details' will be called when more data is needed, and should
- * populate extra data for display.
- *
- * Should implement internal per-request caching as it might be called
- * multiple times for the same booking, preferably using ctools_static.
- *
- * @param array $booking
- *   The booking to add details to.
- * @return
- *   The booking with details added.
- */
-function openruth_booking_details2($booking) {
-  $cache = &ctools_static(__FUNCTION__, array());
-  if (!isset($cache[$booking['id']])) {
-    // Eh, anything we need?
-    $cache[$booking['id']] = $booking;
-  }
-  return $cache[$booking['id']];
-}
-
-/**
  *
  */
 function openruth_booking_options($account) {

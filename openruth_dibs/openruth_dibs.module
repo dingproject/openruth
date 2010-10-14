@@ -1,8 +1,0 @@
-<?php
-
-/**
- * Implements hook_ding_add_payment
- */
-function openruth_dibs_ding_add_payment($transaction) {
-  
-}

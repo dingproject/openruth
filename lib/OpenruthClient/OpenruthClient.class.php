@@ -424,6 +424,28 @@ class OpenruthClient {
   /**
    * paying user fines
    */
-  public function user_payment() {}
+  public function user_payment($username, $amount, $transaction_id = NULL) {
+    $this->log_start();
+    $params = array(
+      'agencyId' =>  $this->agency_id,
+      'userId' => $username,
+      'feeAmountPaid' => $amount,
+    );
+    if ($transaction_id) {
+      $params['userPaymentTransactionId'] = $transaction_id;
+    }
+
+    $res = $this->client->userPayment($params);
+    $this->log($username);
+    if (isset($res->userPaymentError)) {
+      return $res->userPaymentError;
+    }
+    elseif (isset($res->userPaymentOk)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
 
 }
