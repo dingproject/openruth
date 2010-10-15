@@ -144,27 +144,29 @@ class OpenruthClient {
           'holdings' => array(),
         );
 
-        foreach ($holding->itemHoldings as $itemHolding) {
-          foreach ($itemHolding->itemLocation as $itemLocation) {
-            $parts = array();
-            if (isset($itemLocation->agencyBranchId->agencyBranchName)) {
-              $parts[] = $itemLocation->agencyBranchId->agencyBranchName;
-            }
-            if (isset($itemLocation->agencyDepartmentId->agencyDepartmentName)) {
-              $parts[] = $itemLocation->agencyDepartmentId->agencyDepartmentName;
-            }
-            if (isset($itemLocation->agencyCollectionId->agencyCollectionName)) {
-              $parts[] = $itemLocation->agencyCollectionId->agencyCollectionName;
-            }
-            if (isset($itemLocation->agencyPlacementId->agencyPlacementName)) {
-              $parts[] = $itemLocation->agencyPlacementId->agencyPlacementName;
-            }
-            if ($parts) {
-              $h['holdings'][] = join(' → ', $parts);
+        if ($holding->itemHoldings) {
+          foreach ($holding->itemHoldings as $itemHolding) {
+            foreach ($itemHolding->itemLocation as $itemLocation) {
+              $parts = array();
+              if (isset($itemLocation->agencyBranchId->agencyBranchName)) {
+                $parts[] = $itemLocation->agencyBranchId->agencyBranchName;
+              }
+              if (isset($itemLocation->agencyDepartmentId->agencyDepartmentName)) {
+                $parts[] = $itemLocation->agencyDepartmentId->agencyDepartmentName;
+              }
+              if (isset($itemLocation->agencyCollectionId->agencyCollectionName)) {
+                $parts[] = $itemLocation->agencyCollectionId->agencyCollectionName;
+              }
+              if (isset($itemLocation->agencyPlacementId->agencyPlacementName)) {
+                $parts[] = $itemLocation->agencyPlacementId->agencyPlacementName;
+              }
+              if ($parts) {
+                $h['holdings'][] = join(' → ', $parts);
+              }
             }
           }
+          $holdings[$holding->itemId] = $h;
         }
-        $holdings[$holding->itemId] = $h;
       }
       return $holdings;
     }
