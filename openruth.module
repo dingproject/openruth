@@ -54,6 +54,79 @@ function openruth_form_alter(&$form, $form_state, $form_id) {
 }
 
 /**
+ * Implementation of hook_user().
+ */
+function openruth_user($op, &$edit, &$account, $category = NULL) {
+  if (!$category || $category != 'account') {
+    return;
+  }
+  switch ($op) {
+    case 'form':
+      $form = array();
+
+      $status = _openruth_user_status($account);
+      if ($status == DING_PROVIDER_AUTH_REQUIRED) {
+        return $form;
+      }
+
+      $form['openruth_old_values'] = array(
+        '#type' => 'value',
+        '#value' => array(
+          // 'phone' => isset($status->userInfo->userTelephone) ? $status->userInfo->userTelephone : '',
+          'mobile_phone' => isset($status->userInfo->userMobilePhone) ? $status->userInfo->userMobilePhone : '',
+        ),
+      );
+
+      // $form['account']['openruth_phone'] = array(
+      //   '#type' => 'textfield',
+      //   '#title' => t('Phone number'),
+      //   '#description' => t('Phone number where the library can contact you. Is not published on the web site.'),
+      //   '#default_value' => $form['openruth_old_values']['#value']['phone'],
+      //   '#element_validate' => array('ding_base_element_validate_phone_number'),
+      //   '#weight' => 1,
+      // );
+
+      $form['account']['openruth_mobile_phone'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Mobile phone number'),
+        '#description' => t('Mobile phone number used for reminders. Is not published on the web site.'),
+        '#default_value' => $form['openruth_old_values']['#value']['mobile_phone'],
+        '#element_validate' => array('ding_base_element_validate_phone_number'),
+        '#weight' => 2,
+      );
+
+      return $form;
+      break;
+    case 'submit':
+      foreach ($edit['openruth_old_values'] as $name => $value) {
+        if ($edit['openruth_' . $name] != $value) {
+          $changes[$name] = $edit['openruth_' . $name];
+        }
+        // Ensure they don't end up in {user}.data.
+        unset($edit['openruth_' . $name]);
+      }
+
+      unset($edit['openruth_old_values']);
+      if ($edit['mail'] && $account->mail != $edit['mail']) {
+        $changes['mail'] = $edit['mail'];
+      }
+
+      if ($changes) {
+        // Update backend.
+        if (($creds = ding_library_user_get_credentials($account)) !== DING_PROVIDER_AUTH_REQUIRED) {
+          $res = openruth_client()->update_userinfo($creds['name'], $creds['pass'], $changes);
+          if (!$res || is_string($res)) {
+            drupal_set_message(t('There was an error updating your info in the library system. Please try again later or contact your local library.'), 'error');
+          }
+          _openruth_user_status();
+        }
+        // Flush cache.
+      }
+      break;
+  }
+}
+
+/**
  * Get user status.
  *
  * Session cached for efficiency.
@@ -143,32 +216,6 @@ function _openruth_get_agency_counters() {
     }
   }
   return $branches;
-}
-
-/**
- * Element validator.
- */
-function openruth_element_validate_number($element, &$form_state) {
-  if (!preg_match('/^\d+/', $element['#value']) || !($element['#value'] > 0)) {
-    form_error($element, t('Valid positive number required.'));
-  }
-}
-
-/**
- * Element validator.
- */
-function openruth_element_validate_future_date(&$element, &$form_state) {
-  if (!empty($element['#value']['date'])) {
-    list($year, $month, $day) = explode('-', trim($element['#value']['date']));
-    if (!checkdate($month, $day, $year)) {
-      form_error($element, t('Invalid date'));
-    }
-
-    $timestamp = strtotime($element['#value']['date']);
-    if ($timestamp <= $_SERVER['REQUEST_TIME']) {
-      form_error($element, t('Date must be later than today.'));
-    }
-  }
 }
 
 /**

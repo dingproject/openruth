@@ -345,6 +345,7 @@ class OpenruthClient {
     static $mapping = array(
       'pass' => 'userPinCodeNew',
       'mail' => 'userEmail',
+      // 'phone' => 'userTelephone', // No?
       'mobile_phone' => 'userMobilePhone',
       'reminder' => 'userPreReturnReminder',
       'first_name' => 'userFirstName',
@@ -362,6 +363,7 @@ class OpenruthClient {
         $args[$to] = $changes[$from];
       }
     }
+
     $res = $this->client->updateUserInfo($args);
     $this->log($name, $pass);
     if (isset($res->userError)) {

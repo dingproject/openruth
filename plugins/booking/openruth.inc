@@ -63,7 +63,7 @@ function openruth_booking_options($account) {
     '#required' => TRUE,
     '#date_format' => DATE_FORMAT_DATE,
     '#date_year_range' => '-0:+2',
-    '#element_validate' => array('openruth_element_validate_future_date'),
+    '#element_validate' => array('ding_base_element_validate_future_date'),
   );
 
   $form['end_date'] = array(
@@ -72,7 +72,7 @@ function openruth_booking_options($account) {
     '#required' => TRUE,
     '#date_format' => DATE_FORMAT_DATE,
     '#date_year_range' => '-0:+2',
-    '#element_validate' => array('openruth_element_validate_future_date'),
+    '#element_validate' => array('ding_base_element_validate_future_date'),
   );
 
   $form['count'] = array(
@@ -80,7 +80,7 @@ function openruth_booking_options($account) {
     '#title' => t('Number to book'),
     '#required' => TRUE,
     '#default_value' => '1',
-    '#element_validate' => array('openruth_element_validate_number'),
+    '#element_validate' => array('ding_base_element_validate_positive_integer'),
   );
 
   $form['pickup_branch'] = array(
