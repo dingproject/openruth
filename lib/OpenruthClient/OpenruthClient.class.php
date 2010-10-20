@@ -90,11 +90,6 @@ class OpenruthClient {
   }
 
   /**
-   * Perform request to the OpenRuth server
-   */
-  public function request() {}
-
-  /**
    * Get information about an agency's counters
    */
   public function get_agency_counters() {
