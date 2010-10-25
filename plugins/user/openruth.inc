@@ -91,11 +91,11 @@ function openruth_user_authenticate($name, $pass) {
 
   if (is_string($res)) {
     watchdog('openruth', 'Error in user_check: @error', array('@error' => $res), WATCHDOG_ERROR);
-    return;
+    return $return;
   }
   elseif (!$res->userFound || !$res->userPinCodeOk) {
     // Not found.
-    return;
+    return $return;
   }
 
   if ($res->userBlocked) {

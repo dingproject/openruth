@@ -49,7 +49,7 @@ function openruth_form_alter(&$form, $form_state, $form_id) {
     case 'ding_library_user_authenticate_form':
       // Since the login name can be a user's CPR-number, that too is hidden.
       $form['name']['#type'] = 'password';
-       break;
+    break;
   }
 }
 
@@ -616,6 +616,7 @@ function openruth_form_ding_booking_list_form_alter(&$form, $form_state) {
     '#submit' => array('openruth_ding_booking_list_form_remove'),
   );
 }
+
 /**
  * Submit function.
  *
