@@ -1,0 +1,377 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  openruth.info: n/a
+#  lib/OpenruthClient/OpenruthClient.class.php: n/a
+#  plugins/debt/openruth.inc: n/a
+#  plugins/user/openruth.inc: n/a
+#  openruth.module: n/a
+#  plugins/branch/openruth.inc: n/a
+#  plugins/reservation/openruth.inc: n/a
+#  plugins/booking/openruth.inc: n/a
+#  plugins/loan/openruth.inc: n/a
+#  plugins/availability/openruth.inc: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2010-10-28 13:15+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: openruth.info:0;0
+msgid "OpenRuth"
+msgstr ""
+
+#: openruth.info:0
+msgid "Implementation of ZRuth's openruth API for their library system."
+msgstr ""
+
+#: lib/OpenruthClient/OpenruthClient.class.php:83;86;88 plugins/debt/openruth.inc:70 plugins/user/openruth.inc:93 openruth.module:188;210;214;263;299;328;726
+msgid "openruth"
+msgstr ""
+
+#: lib/OpenruthClient/OpenruthClient.class.php:83
+msgid "Sending request (@seconds sec): @xml"
+msgstr ""
+
+#: lib/OpenruthClient/OpenruthClient.class.php:86
+msgid "Sending request: @xml"
+msgstr ""
+
+#: lib/OpenruthClient/OpenruthClient.class.php:88
+msgid "Response: @xml"
+msgstr ""
+
+#: plugins/branch/openruth.inc:11
+msgid "Openruth branch plugin"
+msgstr ""
+
+#: plugins/reservation/openruth.inc:11
+msgid "Openruth reservation plugin"
+msgstr ""
+
+#: plugins/booking/openruth.inc:11
+msgid "Openruth booking plugin"
+msgstr ""
+
+#: plugins/booking/openruth.inc:62
+msgid "From"
+msgstr ""
+
+#: plugins/booking/openruth.inc:71
+msgid "To"
+msgstr ""
+
+#: plugins/booking/openruth.inc:80
+msgid "Number to book"
+msgstr ""
+
+#: plugins/booking/openruth.inc:88 openruth.module:558
+msgid "Pickup branch"
+msgstr ""
+
+#: plugins/debt/openruth.inc:11
+msgid "Openruth debt plugin"
+msgstr ""
+
+#: plugins/debt/openruth.inc:21
+msgid "Ding Dibs Integration module is required for payments."
+msgstr ""
+
+#: plugins/debt/openruth.inc:26
+msgid "Payments"
+msgstr ""
+
+#: plugins/debt/openruth.inc:27
+msgid "Enabled"
+msgstr ""
+
+#: plugins/debt/openruth.inc:27
+msgid "Disabled"
+msgstr ""
+
+#: plugins/debt/openruth.inc:70
+msgid "Debt total (@total) doesn't match userFeesTotal (@us_total)"
+msgstr ""
+
+#: plugins/loan/openruth.inc:11
+msgid "OpenRuth loan plugin"
+msgstr ""
+
+#: plugins/user/openruth.inc:11
+msgid "OpenRuth user provider"
+msgstr ""
+
+#: plugins/user/openruth.inc:43
+msgid "OpenRuth WSDL URL"
+msgstr ""
+
+#: plugins/user/openruth.inc:44
+msgid "The WSDL URL for OpenRuth SOAP service, usually something like http://openruth.addi.dk/0.2/openruth.wsdl"
+msgstr ""
+
+#: plugins/user/openruth.inc:51
+msgid "Agency Id"
+msgstr ""
+
+#: plugins/user/openruth.inc:53
+msgid "The OpenRuth agency id of the library."
+msgstr ""
+
+#: plugins/user/openruth.inc:58
+msgid "Enable logging"
+msgstr ""
+
+#: plugins/user/openruth.inc:60
+msgid "Logs requests to the OpenRuth webservice. Sensitive information such as CPR number and PIN code is stripped from the requests."
+msgstr ""
+
+#: plugins/user/openruth.inc:93
+msgid "Error in user_check: @error"
+msgstr ""
+
+#: plugins/availability/openruth.inc:11
+msgid "OpenRuth availability plugin"
+msgstr ""
+
+#: openruth.module:91
+msgid "Mobile phone number"
+msgstr ""
+
+#: openruth.module:92
+msgid "Mobile phone number used for reminders. Is not published on the web site."
+msgstr ""
+
+#: openruth.module:119
+msgid "There was an error updating your info in the library system. Please try again later or contact your local library."
+msgstr ""
+
+#: openruth.module:228
+msgid "End date must be later than start date."
+msgstr ""
+
+#: openruth.module:245;249;250;251;252
+msgid "Renewal rejected."
+msgstr ""
+
+#: openruth.module:246;247;248
+msgid "Cannot renew, material reserved."
+msgstr ""
+
+#: openruth.module:253
+msgid "Renewal not possible."
+msgstr ""
+
+#: openruth.module:255
+msgid "Not implemented."
+msgstr ""
+
+#: openruth.module:283;287;288
+msgid "Reservation not possible."
+msgstr ""
+
+#: openruth.module:284
+msgid "Already on loan by user."
+msgstr ""
+
+#: openruth.module:285
+msgid "Already reserved by user."
+msgstr ""
+
+#: openruth.module:286
+msgid "No copies available for reservation."
+msgstr ""
+
+#: openruth.module:289;290;291
+msgid "Error reserving."
+msgstr ""
+
+#: openruth.module:337
+msgid "Period of interest"
+msgstr ""
+
+#: openruth.module:338
+msgid "How long are you willing to wait for a reservation?"
+msgstr ""
+
+#: openruth.module:340
+msgid "A month"
+msgstr ""
+
+#: openruth.module:341
+msgid "Two months"
+msgstr ""
+
+#: openruth.module:342
+msgid "Three months"
+msgstr ""
+
+#: openruth.module:343
+msgid "Six months"
+msgstr ""
+
+#: openruth.module:344
+msgid "A year"
+msgstr ""
+
+#: openruth.module:351
+msgid "Preferred library"
+msgstr ""
+
+#: openruth.module:358
+msgid "Update"
+msgstr ""
+
+#: openruth.module:393
+msgid "Valid to"
+msgstr ""
+
+#: openruth.module:399
+msgid "No change"
+msgstr ""
+
+#: openruth.module:405
+msgid "New pickup branch"
+msgstr ""
+
+#: openruth.module:411
+msgid "Save changes for selected reservations"
+msgstr ""
+
+#: openruth.module:419
+msgid "Delete selected reservations"
+msgstr ""
+
+#: openruth.module:431
+msgid "You must select some reservations."
+msgstr ""
+
+#: openruth.module:438
+msgid "You can not change expiry on reservations which are ready for pick up"
+msgstr ""
+
+#: openruth.module:441
+msgid "You can not change pickup branch on reservations which are ready for pick up"
+msgstr ""
+
+#: openruth.module:449
+msgid "Invalid date"
+msgstr ""
+
+#: openruth.module:455
+msgid "Date must be later than today."
+msgstr ""
+
+#: openruth.module:490
+msgid "Reservations updated."
+msgstr ""
+
+#: openruth.module:493
+msgid "Could not update reservations."
+msgstr ""
+
+#: openruth.module:496
+msgid "Updated @ok_count reservations, @failed_count failed"
+msgstr ""
+
+#: openruth.module:528
+msgid "Reservations deleted."
+msgstr ""
+
+#: openruth.module:531
+msgid "Could not delete reservations."
+msgstr ""
+
+#: openruth.module:534
+msgid "Deleted @ok_count reservations, @failed_count failed"
+msgstr ""
+
+#: openruth.module:550
+msgid "Not interested after"
+msgstr ""
+
+#: openruth.module:564
+msgid "Reserve selected"
+msgstr ""
+
+#: openruth.module:583
+msgid "Reservation of “@title” failed. It may be on your reservation list already."
+msgstr ""
+
+#: openruth.module:597
+msgid "Overbooking"
+msgstr ""
+
+#: openruth.module:598
+msgid "Normal period of booking exceeded"
+msgstr ""
+
+#: openruth.module:599
+msgid "Number of fetched copies exceeds number of ordered copies"
+msgstr ""
+
+#: openruth.module:601
+msgid "Booking can not be deleted"
+msgstr ""
+
+#: openruth.module:614
+msgid "Delete selected bookings"
+msgstr ""
+
+#: openruth.module:641
+msgid "Bookings deleted."
+msgstr ""
+
+#: openruth.module:645
+msgid "Could not delete bookings."
+msgstr ""
+
+#: openruth.module:648
+msgid "Deleted @ok_count bookings, @failed_count failed"
+msgstr ""
+
+#: openruth.module:663
+msgid "Pay all"
+msgstr ""
+
+#: openruth.module:676
+msgid "You must be logged in to pay fines."
+msgstr ""
+
+#: openruth.module:683
+msgid "There was a problem communicating with the library system, please try again later."
+msgstr ""
+
+#: openruth.module:188
+msgid "Error fetching user status @error"
+msgstr ""
+
+#: openruth.module:210
+msgid "Error fetching agency counters: @error"
+msgstr ""
+
+#: openruth.module:214
+msgid "Unknown error fetching agency counters."
+msgstr ""
+
+#: openruth.module:263
+msgid "Unknown error while renewing: @error"
+msgstr ""
+
+#: openruth.module:299;328
+msgid "Unknown error while reserving: @error"
+msgstr ""
+
+#: openruth.module:726
+msgid "Error registering payment: @error"
+msgstr ""
+
