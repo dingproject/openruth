@@ -15,7 +15,7 @@ $plugin = array(
 /**
  */
 function openruth_branch_list() {
-  $counters = openruth_client()->get_agency_counters();
+  $counters = openruth_client_invoke('get_agency_counters');
   if ($counters and !is_string($counters)) {
     return $counters;
   }

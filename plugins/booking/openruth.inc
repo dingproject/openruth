@@ -121,7 +121,7 @@ function openruth_booking_create($account, $provider_id, $optional = array()) {
     return array('status' => $creds);
   }
 
-  $book_res = openruth_client()->book_item($creds['name'], $provider_id, $optional['count'], $optional['start_date'], $optional['end_date'], $optional['pickup_branch']);
+  $book_res = openruth_client_invoke('book_item', $creds['name'], $provider_id, $optional['count'], $optional['start_date'], $optional['end_date'], $optional['pickup_branch']);
   if (is_string($book_res)) {
     $res = array('status' => DING_BOOKING_ERROR);
     if ($message = openruth_booking_user_error($renew_res)) {

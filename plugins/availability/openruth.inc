@@ -15,7 +15,7 @@ $plugin = array(
 /**
  */
 function openruth_availability_items($provider_ids) {
-  $holdings = openruth_client()->get_holdings($provider_ids);
+  $holdings = openruth_client_invoke('get_holdings', $provider_ids);
   $res = array();
   foreach ($holdings as $id => $holding) {
     $res[$id] = $holding->available;
@@ -26,6 +26,6 @@ function openruth_availability_items($provider_ids) {
 /**
  */
 function openruth_availability_details($provider_ids) {
-  $holdings = openruth_client()->get_holdings($provider_ids);
+  $holdings = openruth_client_invoke('get_holdings', $provider_ids);
   return $holdings;
 }

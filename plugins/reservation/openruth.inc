@@ -132,7 +132,7 @@ function openruth_reservation_create($account, $provider_id, $optional = array()
   if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
     return array('status' => $creds);
   }
-  $order_res = openruth_client()->order_item($creds['name'], $provider_id, $optional['expiry'], $optional['pickup_branch']);
+  $order_res = openruth_client_invoke('order_item', $creds['name'], $provider_id, $optional['expiry'], $optional['pickup_branch']);
   if (is_string($order_res)) {
     $res = array('status' => openruth_reservation_error_code($renew_res));
   }

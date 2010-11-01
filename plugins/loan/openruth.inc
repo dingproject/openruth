@@ -61,7 +61,7 @@ function openruth_loan_renew_loans($account, $loan_ids) {
   }
 
   $res = array();
-  $renew_res = openruth_client()->renew_loan($creds['name'], $loan_ids);
+  $renew_res = openruth_client_invoke('renew_loan', $creds['name'], $loan_ids);
   if (is_string($renew_res)) {
     $res = openruth_renew_error($renew_res);
   }

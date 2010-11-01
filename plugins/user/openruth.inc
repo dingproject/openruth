@@ -87,7 +87,7 @@ function openruth_user_authenticate($name, $pass) {
   $return = array(
     'result' => FALSE,
   );
-  $res = openruth_client()->user_check($name, $pass);
+  $res = openruth_client_invoke('user_check', $name, $pass);
 
   if (is_string($res)) {
     watchdog('openruth', 'Error in user_check: @error', array('@error' => $res), WATCHDOG_ERROR);
