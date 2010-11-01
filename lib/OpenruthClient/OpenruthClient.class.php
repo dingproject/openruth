@@ -42,6 +42,7 @@ class OpenruthClient {
     $this->agency_id = $agency_id;
     $options = array(
       'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
+      'exceptions' => TRUE,
     );
     if (variable_get('openruth_enable_logging', FALSE)) {
       $this->logging = TRUE;

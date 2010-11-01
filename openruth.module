@@ -21,7 +21,13 @@ function openruth_client() {
     $wsdl = variable_get('openruth_wsdl_url', '');
     $agency_id = variable_get('openruth_agency_id', '');
     if (!empty($wsdl) && !empty($agency_id)) {
-      $client = new OpenruthClient($wsdl, $agency_id);
+      try {
+        $client = new OpenruthClient($wsdl, $agency_id);
+      }
+      catch (Exception $e) {
+        watchdog('openruth', 'Constructor error: “@message”', array('@message' => $e->getMessage(), WATCHDOG_ERROR));
+        $client = NULL;
+      }
     }
     else {
       $client = NULL;
@@ -184,7 +190,7 @@ function _openruth_user_status($creds = NULL, $reset = FALSE) {
 
   if (!isset($_SESSION['openruth_user_status'][$id]) ||
     $_SESSION['openruth_user_status'][$id]['time'] < ($_SERVER['REQUEST_TIME'] - 300)) {
-    $status = openruth_client_invoke('user_status', $creds['name'], $creds['pass'];)
+    $status = openruth_client_invoke('user_status', $creds['name'], $creds['pass']);
     if ($status && !is_string($status)) {
       $_SESSION['openruth_user_status'][$id] = array(
         'time' => $_SERVER['REQUEST_TIME'],
