@@ -138,31 +138,43 @@ class OpenruthClient {
           'reservable' => $reservable,
           'show_reservation_button' => $reservable,
           'holdings' => array(),
+          'reserved_count' => (int) $holding->ordersCount,
         );
 
+        $total = 0;
+        $available = 0;
         if ($holding->itemHoldings) {
           foreach ($holding->itemHoldings as $itemHolding) {
-            foreach ($itemHolding->itemLocation as $itemLocation) {
-              $parts = array();
-              if (isset($itemLocation->agencyBranchId->agencyBranchName)) {
-                $parts[] = $itemLocation->agencyBranchId->agencyBranchName;
-              }
-              if (isset($itemLocation->agencyDepartmentId->agencyDepartmentName)) {
-                $parts[] = $itemLocation->agencyDepartmentId->agencyDepartmentName;
-              }
-              if (isset($itemLocation->agencyCollectionId->agencyCollectionName)) {
-                $parts[] = $itemLocation->agencyCollectionId->agencyCollectionName;
-              }
-              if (isset($itemLocation->agencyPlacementId->agencyPlacementName)) {
-                $parts[] = $itemLocation->agencyPlacementId->agencyPlacementName;
-              }
-              if ($parts) {
-                $h['holdings'][] = join(' → ', $parts);
+            $fields = array('itemLocation', 'itemComingLocation');
+            foreach ($fields as $field) {
+              if (isset($itemHolding->{$field})){
+                foreach ($itemHolding->{$field} as $itemLocation) {
+                  $total += $itemLocation->copiesCount;
+                  $available += $itemLocation->copiesAvailableCount;
+                  $parts = array();
+                  if (isset($itemLocation->agencyBranchId->agencyBranchName)) {
+                    $parts[] = $itemLocation->agencyBranchId->agencyBranchName;
+                  }
+                  if (isset($itemLocation->agencyDepartmentId->agencyDepartmentName)) {
+                    $parts[] = $itemLocation->agencyDepartmentId->agencyDepartmentName;
+                  }
+                  if (isset($itemLocation->agencyCollectionId->agencyCollectionName)) {
+                    $parts[] = $itemLocation->agencyCollectionId->agencyCollectionName;
+                  }
+                  if (isset($itemLocation->agencyPlacementId->agencyPlacementName)) {
+                    $parts[] = $itemLocation->agencyPlacementId->agencyPlacementName;
+                  }
+                  if ($parts) {
+                    $h['holdings'][] = join(' → ', $parts);
+                  }
+                }
               }
             }
           }
-          $holdings[$holding->itemId] = $h;
         }
+        $h['total_count'] = $total;
+        $h['reservable_count'] = $available;
+        $holdings[$holding->itemId] = $h;
       }
       return $holdings;
     }
