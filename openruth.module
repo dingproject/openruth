@@ -610,7 +610,7 @@ function openruth_form_ding_cart_list_form_alter(&$form, &$form_state) {
 /**
  * Custom submit handler
  */
-function openruth_form_ding_cart_list_form_submit($form, &$form_state) {
+function openruth_ding_cart_list_form_submit($form, &$form_state) {
   foreach ($form_state['values']['selected'] as $local_id) {
     $reservation = ding_provider_invoke('reservation', 'create', $form_state['values']['account'], $local_id, array('expiry' => $form_state['values']['expiry'], 'pickup_branch' => $form_state['values']['pickup_branch']));
 
