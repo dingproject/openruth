@@ -113,3 +113,15 @@ function openruth_user_authenticate($name, $pass) {
 
   return $return;
 }
+
+/**
+ *
+ */
+function openruth_user_password_change($account, $new_password) {
+  $creds = ding_library_user_get_credentials($account);
+  if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
+    return $creds;
+  }
+
+  return openruth_client_invoke('update_userinfo', $creds['name'], $creds['pass'], array('pass' => $new_password));
+}
