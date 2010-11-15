@@ -370,7 +370,6 @@ function openruth_reservation_error_code($error) {
 
 function openruth_form_openruth_user_library_settings_form_alter(&$form, $form_state) {
   $account = $form['account']['#value'];
-
   $form['options']['interest_period'] = array(
     '#type' => 'select',
     '#title' => t('Period of interest'),
@@ -413,10 +412,10 @@ function openruth_openruth_user_library_settings_form_submit($form, &$form_state
   }
 
   if ($form_state['values']['interest_period'] != $account->interest_period) {
-    $updates['interest_period'] = $form_state['values']['interest_branch'];
+    $updates['interest_period'] = $form_state['values']['interest_period'];
   }
   if (!empty($updates)) {
-    // user_save($account, $updates);
+    user_save($account, $updates);
     if (isset($updates['preferred_branch'])) {
       // Update Integra
       openruth_client_invoke('update_userinfo', $creds['name'], $creds['pass'], $updates);
