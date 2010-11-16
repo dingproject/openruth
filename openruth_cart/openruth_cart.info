@@ -1,6 +1,0 @@
-name = OpenRuth Cart
-description = Provides a shopping cart for reserving books in OpenRuth
-package = OpenRuth
-php = 5.2
-core = 6.x
-dependencies[] = openruth_user
