@@ -165,3 +165,76 @@ function openruth_reservation_exists($account, $provider_id) {
   // TODO: implement
   return FALSE;
 }
+
+/**
+ *
+ */
+function openruth_reservation_options($account, $create = TRUE) {
+  $form['expiry'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('Valid to'),
+    '#date_format' => DATE_FORMAT_DATE,
+    '#date_year_range' => '-0:+2',
+    '#required' => $create,
+  );
+
+  if ($create) {
+    $interest_period = (isset($account->interest_period) && $account->interest_period > 10) ? $account->interest_period : DING_LIBRARY_USER_DEFAULT_INTEREST_PERIOD;
+    $form['expiry']['#default_value'] = date('Y-m-d', $_SERVER['REQUEST_TIME'] + $interest_period * 86400);
+  }
+
+  $branches = array();
+  if (!$create) {
+    $branches = array(
+      '' => t("No change"),
+    );
+  }
+  $branches += _openruth_get_agency_counters();
+
+  $form['pickup_branch'] = array(
+    '#type' => 'select',
+    '#title' => t('New pickup branch'),
+    '#options' => $branches,
+    '#required' => $create,
+  );
+
+  if ($create) {
+    $form['#element_validate'] = array('openruth_element_validate_reservation_options');
+  }
+
+  return $form;
+}
+
+/**
+ *
+ */
+function openruth_reservation_update($account, $reservation_ids, $options = array()) {
+  $res = array();
+  $reservations = openruth_reservation_list($account);
+  foreach ($reservation_ids as $reservations_id) {
+    $expiry = empty($options['expiry']) ?
+      $reservations[$reservations_id]['valid_to'] :
+      $options['expiry'];
+    $pickup_branch = empty($options['pickup_branch']) ?
+      $reservations[$reservations_id]['pickup_branch'] :
+      $options['pickup_branch'];
+    $res[] = openruth_client_invoke('update_order', $reservations_id, $pickup_branch, $expiry);
+  }
+
+  return $res;
+}
+
+/**
+ *
+ */
+function openruth_reservation_delete($account, $reservation_ids) {
+  $res = array();
+  foreach ($reservation_ids as $reservation_id) {
+    $res = openruth_client_invoke('cancel_order', $reservation_id);
+  }
+
+  // Flush cached user status.
+  _openruth_user_status();
+
+  return $res;
+}
