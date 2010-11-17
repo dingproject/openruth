@@ -646,49 +646,6 @@ function openruth_booking_user_error($error) {
   return NULL;
 }
 
-function openruth_form_ding_booking_list_form_alter(&$form, $form_state) {
-  $form['buttons']['remove'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete selected bookings'),
-    '#attributes' => array('class' => 'cancel-button'),
-    '#submit' => array('openruth_ding_booking_list_form_remove'),
-  );
-}
-
-/**
- * Submit function.
- *
- * Updates selected bookings.
- */
-function openruth_ding_booking_list_form_remove($form, $form_state) {
-  ding_library_user_required();
-
-  $bookings_ids = array_filter($form_state['values']['selected']);
-
-  $successes = $failures = array();
-  foreach ($bookings_ids as $bookings_id) {
-    if (openruth_client_invoke('cancel_booking', $bookings_id)) {
-      $successes[] = $bookings_id;
-    }
-    else {
-      $failures[] = $bookings_id;
-    }
-  }
-
-  if (!empty($successes) && empty($failures)){
-    drupal_set_message(t('Bookings deleted.'));
-  }
-
-  elseif (!empty($failures) && empty($successes)) {
-    drupal_set_message(t('Could not delete bookings.'), 'error');
-  }
-  else {
-    drupal_set_message(t('Deleted @ok_count bookings, @failed_count failed', array('@ok_count' => sizeof($successes), '@failed_count' => sizeof($failures))), 'error');
-  }
-  // Flush cached user status.
-  _openruth_user_status();
-}
-
 // Debt related functions
 
 /**

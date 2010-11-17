@@ -26,6 +26,7 @@ function openruth_booking_list($account) {
     'partly returned' => 'active',
     'partly on loan' => 'active',
     'closed' => 'closed',
+    'Udlånt' => 'active', // Bug in openruth.
   );
   $user_status = _openruth_user_status($account);
   if ($user_status == DING_PROVIDER_AUTH_REQUIRED) {
@@ -38,7 +39,7 @@ function openruth_booking_list($account) {
         $bookings[$booking->bookingId] = array(
           'id' => $booking->bookingId,
           'display_title' => $booking->itemDisplayTitle,
-          'status' => $state_mapping[$booking->bookingStatus],
+          'status' => isset($state_mapping[$booking->bookingStatus]) ? $state_mapping[$booking->bookingStatus] : 'closed',
           'start_date' => $booking->bookingStartDate,
           'end_date' => $booking->bookingEndDate,
           'count' => $booking->bookingTotalCount,
@@ -135,4 +136,19 @@ function openruth_booking_create($account, $provider_id, $optional = array()) {
   // Flush cached user status.
   _openruth_user_status();
   return $res;
+}
+
+/**
+ * Delete bookings.
+ */
+function openruth_booking_delete($account, $bookings_ids) {
+  $result = array();
+  foreach ($bookings_ids as $bookings_id) {
+    $result[$bookings_id] = openruth_client_invoke('cancel_booking', $bookings_id);
+  }
+
+  // Flush cached user status.
+  _openruth_user_status();
+
+  return $result;
 }
