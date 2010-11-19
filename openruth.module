@@ -273,7 +273,7 @@ function openruth_element_validate_options($element, &$form_state, $complete) {
  * Element validator.
  */
 function openruth_element_validate_reservation_options(&$element, &$form_state, $complete_form) {
-  if (form_get_errors()) {
+  if (form_get_errors() || $form_state['clicked_button']['#op'] != 'reserve') {
     return;
   }
   $reservations = $form_state['values']['reservations'];
