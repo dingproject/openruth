@@ -173,7 +173,7 @@ function openruth_reservation_options($account, $create = TRUE) {
   $form['expiry'] = array(
     '#type' => 'date_popup',
     '#title' => t('Valid to'),
-    '#date_format' => DATE_FORMAT_DATE,
+    '#date_format' => variable_get('date_format_date_short', DATE_FORMAT_DATE),
     '#date_year_range' => '-0:+2',
     '#required' => $create,
   );
