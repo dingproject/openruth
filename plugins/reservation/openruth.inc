@@ -57,6 +57,23 @@ function openruth_reservation_list($account) {
       }
     }
   }
+  if ($user_status && isset($user_status->illOrders) && isset($user_status->illOrders->illOrder)) {
+    foreach ($user_status->illOrders->illOrder as $order) {
+        $reservations[$order->orderId] = array(
+          'remote_reservation' => TRUE,
+          'id' => $order->orderId,
+          'title' => $order->itemTitle,
+          'authors' => $order->itemAuthor,
+          'display_title' => $order->itemDisplayTitle,
+          'status' => 'active',
+          'pickup_branch' => '',
+          'create_date' => $order->orderDate,
+          // Leave this out?
+          'valid_from' => $order->orderDate,
+          'valid_to' => $order->orderLastInterestDate,
+        );
+    }
+  }
   return $reservations;
 }
 
