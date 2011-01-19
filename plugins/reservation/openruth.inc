@@ -131,6 +131,10 @@ function openruth_reservation_details($reservation) {
  *     the material is reserved to.
  */
 function openruth_reservation_create($account, $provider_id, $optional = array()) {
+  $creds = ding_library_user_get_credentials($account);
+  if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
+    return array('status' => $creds);
+  }
   if (!$optional['pickup_branch']) {
     if ($account->preferred_branch) {
       $optional['pickup_branch'] = $account->preferred_branch;
@@ -145,10 +149,6 @@ function openruth_reservation_create($account, $provider_id, $optional = array()
     $optional['expiry'] = date('Y-m-d', $_SERVER['REQUEST_TIME'] + $interest_period * 86400);
   }
 
-  $creds = ding_library_user_get_credentials($account);
-  if ($creds == DING_PROVIDER_AUTH_REQUIRED) {
-    return array('status' => $creds);
-  }
   $order_res = openruth_client_invoke('order_item', $creds['name'], $provider_id, $optional['expiry'], $optional['pickup_branch']);
   if (is_string($order_res)) {
     $res = array('status' => openruth_reservation_error_code($renew_res));
