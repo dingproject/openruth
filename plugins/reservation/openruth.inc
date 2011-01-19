@@ -238,6 +238,9 @@ function openruth_reservation_update($account, $reservation_ids, $options = arra
     $res[] = openruth_client_invoke('update_order', $reservations_id, $pickup_branch, $expiry);
   }
 
+  // Flush cached user status.
+  _openruth_user_status();
+
   return $res;
 }
 
