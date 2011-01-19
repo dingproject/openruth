@@ -29,3 +29,11 @@ function openruth_availability_details($provider_ids) {
   $holdings = openruth_client_invoke('get_holdings', $provider_ids);
   return $holdings;
 }
+
+/**
+ *
+ */
+function openruth_availability_periodical($provider_ids) {
+  $holdings = openruth_client_invoke('get_holdings', $provider_ids);
+  return $holdings;
+}

@@ -139,16 +139,22 @@ class OpenruthClient {
           'show_reservation_button' => $reservable,
           'holdings' => array(),
           'reserved_count' => (int) $holding->ordersCount,
+          'issues' => array(),
         );
 
         $total = 0;
         $available = 0;
         if ($holding->itemHoldings) {
           foreach ($holding->itemHoldings as $itemHolding) {
+            $holding_reservable = FALSE;
             $fields = array('itemLocation', 'itemComingLocation');
+
             foreach ($fields as $field) {
               if (isset($itemHolding->{$field})){
                 foreach ($itemHolding->{$field} as $itemLocation) {
+                  if ($itemLocation->bookingAllowed) {
+                    $holding_reservable = TRUE;
+                  }
                   $total += $itemLocation->copiesCount;
                   $available += $itemLocation->copiesAvailableCount;
                   $parts = array();
@@ -170,10 +176,23 @@ class OpenruthClient {
                 }
               }
             }
+
+            if (isset($itemHolding->itemSerialPartId) ||
+              isset($itemHolding->itemSerialPartVolume) ||
+              isset($itemHolding->itemSerialPartIssue)) {
+              $issue = array(
+                'local_id' => $itemHolding->itemSerialPartId,
+                'reservable' => $holding_reservable,
+              );
+              $h['issues'][$itemHolding->itemSerialPartVolume][$itemHolding->itemSerialPartIssue] = $issue;
+            }
           }
         }
         $h['total_count'] = $total;
         $h['reservable_count'] = $available;
+        if (sizeof($h['issues'])) {
+          $h['holdings'] = array_unique($h['holdings']);
+        }
         $holdings[$holding->itemId] = $h;
       }
       return $holdings;
