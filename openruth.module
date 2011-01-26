@@ -137,6 +137,7 @@ function openruth_user($op, &$edit, &$account, $category = NULL) {
       return $form;
       break;
     case 'submit':
+      if (isset($edit['openruth_old_values'])) {
       foreach ($edit['openruth_old_values'] as $name => $value) {
         if ($edit['openruth_' . $name] != $value) {
           $changes[$name] = $edit['openruth_' . $name];
@@ -157,9 +158,10 @@ function openruth_user($op, &$edit, &$account, $category = NULL) {
           if (!$res || is_string($res)) {
             drupal_set_message(t('There was an error updating your info in the library system. Please try again later or contact your local library.'), 'error');
           }
+          // Flush cache.
           _openruth_user_status();
         }
-        // Flush cache.
+      }
       }
       break;
   }
