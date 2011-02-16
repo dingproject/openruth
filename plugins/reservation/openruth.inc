@@ -66,7 +66,7 @@ function openruth_reservation_list($account) {
           'authors' => $order->itemAuthor,
           'display_title' => $order->itemDisplayTitle,
           'status' => 'active',
-          'pickup_branch' => '',
+          'pickup_branch' => $order->agencyCounter,
           'create_date' => $order->orderDate,
           // Leave this out?
           'valid_from' => $order->orderDate,
