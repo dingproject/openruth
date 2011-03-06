@@ -170,7 +170,7 @@ class OpenruthClient {
                   if (isset($itemLocation->agencyPlacementId->agencyPlacementName)) {
                     $parts[] = $itemLocation->agencyPlacementId->agencyPlacementName;
                   }
-                  if ($parts) {
+                  if ($parts && $itemLocation->copiesAvailableCount > 0) {
                     $h['holdings'][] = join(' → ', $parts);
                   }
                 }
