@@ -138,7 +138,7 @@ class OpenruthClient {
           'reservable' => $reservable,
           'show_reservation_button' => $reservable,
           'holdings' => array(),
-          'reserved_count' => (int) $holding->ordersCount,
+          'reserved_count' => 0,
           'issues' => array(),
         );
 
@@ -146,6 +146,9 @@ class OpenruthClient {
         $available = 0;
         if ($holding->itemHoldings) {
           foreach ($holding->itemHoldings as $itemHolding) {
+            if (isset($itemHolding->ordersCount) && $itemHolding->ordersCount) {
+              $h['reserved_count'] += $itemHolding->ordersCount;
+            }
             $holding_reservable = FALSE;
             $fields = array('itemLocation', 'itemComingLocation');
 
