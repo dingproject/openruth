@@ -168,6 +168,13 @@ function openruth_user($op, &$edit, &$account, $category = NULL) {
 }
 
 /**
+ * Implementation of hook_trampoline_variables().
+ */
+function openruth_trampoline_variables() {
+  return array('openruth_wsdl_url', 'openruth_agency_id');
+}
+
+/**
  * Get user status.
  *
  * Session cached for efficiency.
