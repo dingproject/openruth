@@ -212,6 +212,7 @@ function openruth_reservation_options($account, $create = TRUE) {
     '#type' => 'select',
     '#title' => t('New pickup branch'),
     '#options' => $branches,
+    '#default_value' => (isset($account->preferred_branch)) ? $account->preferred_branch : NULL, 
     '#required' => $create,
   );
 
