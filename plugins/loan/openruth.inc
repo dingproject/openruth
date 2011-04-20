@@ -31,6 +31,9 @@ function openruth_loan_get_loans($account) {
         'due_date' => $loan->loanReturnDate,
         'is_renewable' => ($loan->loanRenewable == 'renewable'),
       );
+      if (isset($loan->itemId)) {
+        $loans[$loan->copyId]['provider_id'] = $loan->itemId;
+      }
     }
   }
 
@@ -41,7 +44,6 @@ function openruth_loan_get_loans($account) {
  * Loan details callback.
  */
 function openruth_loan_details($loan) {
-  return $loan;
   $cache = &ctools_static(__FUNCTION__, array());
   if (!isset($cache[$loan['id']])) {
     if ($loan['provider_id'] and $object = ting_get_object_by_local_id($loan['provider_id'])) {

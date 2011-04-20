@@ -37,6 +37,9 @@ function openruth_reservation_list($account) {
           'valid_from' => $order->orderDate,
           'valid_to' => $order->orderLastInterestDate,
         );
+        if (isset($order->itemId)) {
+          $reservations[$order->orderId]['provider_id'] = $order->itemId;
+        }
       }
     }
     if (isset($user_status->orders->orderNotReady)) {
@@ -54,24 +57,30 @@ function openruth_reservation_list($account) {
           'valid_to' => $order->orderLastInterestDate,
           'queue_number' => $order->orderQueuePosition,
         );
+        if (isset($order->itemId)) {
+          $reservations[$order->orderId]['provider_id'] = $order->itemId;
+        }
       }
     }
   }
   if ($user_status && isset($user_status->illOrders) && isset($user_status->illOrders->illOrder)) {
     foreach ($user_status->illOrders->illOrder as $order) {
-        $reservations[$order->orderId] = array(
-          'remote_reservation' => TRUE,
-          'id' => $order->orderId,
-          'title' => $order->itemTitle,
-          'authors' => $order->itemAuthor,
-          'display_title' => $order->itemDisplayTitle,
-          'status' => 'active',
-          'pickup_branch' => $order->agencyCounter,
-          'create_date' => $order->orderDate,
-          // Leave this out?
-          'valid_from' => $order->orderDate,
-          'valid_to' => $order->orderLastInterestDate,
-        );
+      $reservations[$order->orderId] = array(
+        'remote_reservation' => TRUE,
+        'id' => $order->orderId,
+        'title' => $order->itemTitle,
+        'authors' => $order->itemAuthor,
+        'display_title' => $order->itemDisplayTitle,
+        'status' => 'active',
+        'pickup_branch' => $order->agencyCounter,
+        'create_date' => $order->orderDate,
+        // Leave this out?
+        'valid_from' => $order->orderDate,
+        'valid_to' => $order->orderLastInterestDate,
+      );
+      if (isset($order->itemId)) {
+        $reservations[$order->orderId]['provider_id'] = $order->itemId;
+      }
     }
   }
   return $reservations;
@@ -96,7 +105,9 @@ function openruth_reservation_list($account) {
 function openruth_reservation_details($reservation) {
   $cache = &ctools_static(__FUNCTION__, array());
   if (!isset($cache[$reservation['id']])) {
-    // Eh, anything we need?
+    if ($reservation['provider_id'] and $object = ting_get_object_by_local_id($reservation['provider_id'])) {
+      $reservation['ting_object'] = $object;
+    }
     $cache[$reservation['id']] = $reservation;
   }
   return $cache[$reservation['id']];
